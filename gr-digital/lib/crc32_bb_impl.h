@@ -25,7 +25,8 @@
 
 #include <gnuradio/digital/crc32_bb.h>
 #include <boost/crc.hpp>
-
+#include <chrono>
+//#include <psutilcpp/psutilcpp.hpp> 
 namespace gr {
 namespace digital {
 
@@ -38,6 +39,15 @@ private:
     int d_crc_length;
     std::vector<char> d_buffer;
     unsigned int calculate_crc32(const unsigned char* in, size_t packet_length);
+    void print_stats();
+    uint64_t d_npass;
+    uint64_t d_nfail;
+    long long total_cpu_runtime = 0;
+    long long total_memory_footprint = 0;
+    inline bool fix1bit(size_t pkt_len,const uint8_t* bytes_in, uint8_t* bytes_fix);
+    inline bool fix2bit(size_t pkt_len,const uint8_t* bytes_in, uint8_t* bytes_fix);
+    inline bool fix3bit(size_t pkt_len,const uint8_t* bytes_in, uint8_t* bytes_fix);
+    uint16_t fix1bits=0,fix2bits=0,fix3bits=0;
 
 public:
     crc32_bb_impl(bool check, const std::string& lengthtagname, bool packed);
