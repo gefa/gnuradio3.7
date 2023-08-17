@@ -217,6 +217,7 @@ int crc32_bb_impl::work(int noutput_items,
     // make a copy of input for grand
     unsigned char input_copy[packet_length];
     uint8_t * bytes_fix = (uint8_t*)input_copy; //
+    uint8_t fixed = 0;
     for (size_t i = 0; i < packet_length; i++) {
         input_copy[i] = in[i];
     }
@@ -248,12 +249,15 @@ auto start_time = std::chrono::high_resolution_clock::now();
                 //if (crc != *(unsigned int*)(bytes_in + pkt_len - 4)){ // only try GRAND if CRC fails
                 if (fix1bit(packet_length, in, bytes_fix)){
                     d_npass++;
-                } 
-               /* else if (fix2bit(packet_length, in, bytes_fix)){
+                    fixed=1;
+                } /*
+                else if (fix2bit(packet_length, in, bytes_fix)){
                     d_npass++;
+                    fixed=1;
                 } 
                 else if (fix3bit(packet_length, in, bytes_fix)){
                     d_npass++;
+                    fixed=1;
                 }*/ 
                 else {
                     d_nfail++;
@@ -270,7 +274,7 @@ auto start_time = std::chrono::high_resolution_clock::now();
                 d_npass++; // if CRC was fine at start
             }
     auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
     total_cpu_runtime += duration.count();
 	//psutil::Memory memory_info = psutil::virtual_memory();
 	total_memory_footprint += getMemoryUsage(); //memory_info.rss();
@@ -293,7 +297,11 @@ auto start_time = std::chrono::high_resolution_clock::now();
 
         //printf("GoodCrc");
         print_stats();
-        memcpy((void*)out, (const void*)in, packet_length - d_crc_length);
+        if (fixed==1){
+          memcpy((void*)out, (const void*)bytes_fix, packet_length - d_crc_length);
+        }else{
+          memcpy((void*)out, (const void*)in, packet_length - d_crc_length);
+        }
     } else {
         crc = calculate_crc32(in, packet_length);
         memcpy((void*)out, (const void*)in, packet_length);
