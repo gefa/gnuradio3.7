@@ -54,7 +54,7 @@ public:
      */
     static sptr make(bool check = false,
                      const std::string& lengthtagname = "packet_len",
-                     bool packed = true);
+                     bool packed = true, int grand = 0);
 };
 
 } // namespace digital

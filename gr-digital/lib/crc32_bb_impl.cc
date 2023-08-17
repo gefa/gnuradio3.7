@@ -30,12 +30,12 @@
 namespace gr {
 namespace digital {
 
-crc32_bb::sptr crc32_bb::make(bool check, const std::string& lengthtagname, bool packed)
+crc32_bb::sptr crc32_bb::make(bool check, const std::string& lengthtagname, bool packed, int grand)
 {
-    return gnuradio::get_initial_sptr(new crc32_bb_impl(check, lengthtagname, packed));
+    return gnuradio::get_initial_sptr(new crc32_bb_impl(check, lengthtagname, packed, grand));
 }
 
-crc32_bb_impl::crc32_bb_impl(bool check, const std::string& lengthtagname, bool packed)
+crc32_bb_impl::crc32_bb_impl(bool check, const std::string& lengthtagname, bool packed, int grand)
     : tagged_stream_block("crc32_bb",
                           io_signature::make(1, 1, sizeof(char)),
                           io_signature::make(1, 1, sizeof(char)),
@@ -43,7 +43,8 @@ crc32_bb_impl::crc32_bb_impl(bool check, const std::string& lengthtagname, bool 
       d_check(check),
       d_packed(packed),
       d_npass(0),
-      d_nfail(0)
+      d_nfail(0),
+      d_grand(grand)
 {
     d_crc_length = 4;
     if (!d_packed) {
@@ -214,6 +215,7 @@ int crc32_bb_impl::work(int noutput_items,
     size_t packet_length = ninput_items[0];
     int packet_size_diff = d_check ? -d_crc_length : d_crc_length;
     unsigned int crc;
+    //if (grand>0){
     // make a copy of input for grand
     unsigned char input_copy[packet_length];
     uint8_t * bytes_fix = (uint8_t*)input_copy; //
@@ -221,6 +223,7 @@ int crc32_bb_impl::work(int noutput_items,
     for (size_t i = 0; i < packet_length; i++) {
         input_copy[i] = in[i];
     }
+    //}
     if (d_check) {
         if (packet_length <= d_crc_length) {
             return 0;
@@ -236,7 +239,9 @@ int crc32_bb_impl::work(int noutput_items,
 	}
 	printf("\n");*/
         if (d_packed) {
+#ifdef GRAND
 auto start_time = std::chrono::high_resolution_clock::now();
+#endif
             if (crc !=
                 *(unsigned int*)(in + packet_length - d_crc_length)) { // Drop package
                 // or try to correct it with GRAND here
@@ -247,18 +252,18 @@ auto start_time = std::chrono::high_resolution_clock::now();
             //{ // test this only when applicable to measure ref.latency
                 // fix one bit errors
                 //if (crc != *(unsigned int*)(bytes_in + pkt_len - 4)){ // only try GRAND if CRC fails
-                if (fix1bit(packet_length, in, bytes_fix)){
-                    d_npass++;
-                    fixed=1;
-                } /*
-                else if (fix2bit(packet_length, in, bytes_fix)){
+                if (d_grand>=1 && fix1bit(packet_length, in, bytes_fix)){
                     d_npass++;
                     fixed=1;
                 } 
-                else if (fix3bit(packet_length, in, bytes_fix)){
+                else if (d_grand>=2 && fix2bit(packet_length, in, bytes_fix)){
                     d_npass++;
                     fixed=1;
-                }*/ 
+                } 
+                else if (d_grand>=3 && fix3bit(packet_length, in, bytes_fix)){
+                    d_npass++;
+                    fixed=1;
+                } 
                 else {
                     d_nfail++;
                     //print_stats();
@@ -273,6 +278,7 @@ auto start_time = std::chrono::high_resolution_clock::now();
             }else{
                 d_npass++; // if CRC was fine at start
             }
+#ifdef GRAND
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
     total_cpu_runtime += duration.count();
@@ -302,6 +308,9 @@ auto start_time = std::chrono::high_resolution_clock::now();
         }else{
           memcpy((void*)out, (const void*)in, packet_length - d_crc_length);
         }
+#else
+    memcpy((void*)out, (const void*)in, packet_length - d_crc_length);
+#endif
     } else {
         crc = calculate_crc32(in, packet_length);
         memcpy((void*)out, (const void*)in, packet_length);

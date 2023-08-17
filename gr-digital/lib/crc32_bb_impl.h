@@ -39,6 +39,7 @@ private:
     int d_crc_length;
     std::vector<char> d_buffer;
     unsigned int calculate_crc32(const unsigned char* in, size_t packet_length);
+    int d_grand=0;
     void print_stats();
     uint64_t d_npass;
     uint64_t d_nfail;
@@ -50,7 +51,7 @@ private:
     uint16_t fix1bits=0,fix2bits=0,fix3bits=0;
 
 public:
-    crc32_bb_impl(bool check, const std::string& lengthtagname, bool packed);
+    crc32_bb_impl(bool check, const std::string& lengthtagname, bool packed, int grand);
     ~crc32_bb_impl();
 
     int calculate_output_stream_length(const gr_vector_int& ninput_items);
