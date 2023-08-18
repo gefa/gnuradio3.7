@@ -267,14 +267,14 @@ auto start_time = std::chrono::high_resolution_clock::now();
                 else {
                     d_nfail++;
                     //print_stats();
-                    //return 0;
+                    return 0;
                 }
 		#else
 		d_nfail++;
+                return 0;
                 #endif
 
                 //printf("BadCrc");
-                //return 0;
             }else{
                 d_npass++; // if CRC was fine at start
             }
