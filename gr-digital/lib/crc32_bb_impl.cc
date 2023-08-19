@@ -98,6 +98,7 @@ inline bool crc32_bb_impl::fix1bit(size_t pkt_len,const uint8_t* bytes_in, uint8
         d_crc_impl.process_bytes(bytes_fix, pkt_len - 4);
         crc = d_crc_impl();
         if (crc == *(unsigned int*)(bytes_fix + pkt_len - 4)) { // CRC re-check
+#ifdef GRAND_VERBOSE
             printf("%s %d\n", "grand ", i);
             // print how crc passes
             printf("%s %d\n", "PKT_LEN ", pkt_len);
@@ -105,6 +106,7 @@ inline bool crc32_bb_impl::fix1bit(size_t pkt_len,const uint8_t* bytes_in, uint8
                 printf("%02X \n", bytes_in[i]);
             }
             printf("\n");
+#endif
             fix1bits++;
             return true;
         }
@@ -126,6 +128,7 @@ inline bool crc32_bb_impl::fix2bit(size_t pkt_len,const uint8_t* bytes_in, uint8
             d_crc_impl.process_bytes(bytes_fix, pkt_len - 4);
             crc = d_crc_impl();
             if (crc == *(unsigned int*)(bytes_fix + pkt_len - 4)) { // CRC re-check
+#ifdef GRAND_VERBOSE
                 printf("%s %d %d\n", "grand ", i, j);
                 // print how crc passes
                 printf("%s %d\n", "PKT_LEN ", pkt_len);
@@ -133,6 +136,7 @@ inline bool crc32_bb_impl::fix2bit(size_t pkt_len,const uint8_t* bytes_in, uint8
                     printf("%02X \n", bytes_in[b]);
                 }
                 printf("\n");
+#endif
                 fix2bits++;
                 return true;
             }
@@ -160,6 +164,7 @@ inline bool crc32_bb_impl::fix3bit(size_t pkt_len,const uint8_t* bytes_in, uint8
                 d_crc_impl.process_bytes(bytes_fix, pkt_len - 4);
                 crc = d_crc_impl();
                 if (crc == *(unsigned int*)(bytes_fix + pkt_len - 4)) { // CRC re-check
+#ifdef GRAND_VERBOSE
                     printf("%s %d %d %d\n", "grand ", i, j, k);
                     // print how crc passes
                     printf("%s %d\n", "PKT_LEN ", pkt_len);
@@ -167,6 +172,7 @@ inline bool crc32_bb_impl::fix3bit(size_t pkt_len,const uint8_t* bytes_in, uint8
                         printf("%02X \n", bytes_in[b]);
                     }
                     printf("\n");
+#endif
                     fix3bits++;
                     return true;
                 }
