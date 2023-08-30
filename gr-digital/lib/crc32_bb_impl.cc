@@ -184,7 +184,7 @@ inline bool crc32_bb_impl::fix3bit(size_t pkt_len,const uint8_t* bytes_in, uint8
     }
     return false;
 }
-//#define GRAND 1
+#define GRAND 1 // note that GRAND only works in d_packed=true mode
 void crc32_bb_impl::print_stats(){
     #ifdef GRAND
     printf("%s %ld %ld %ld %d %d %d\n", "pft", d_npass, d_nfail, d_npass+d_nfail,\
@@ -224,11 +224,14 @@ int crc32_bb_impl::work(int noutput_items,
     //if (grand>0){
     // make a copy of input for grand
     unsigned char input_copy[packet_length];
+#ifdef GRAND
     uint8_t * bytes_fix = (uint8_t*)input_copy; //
     uint8_t fixed = 0;
     for (size_t i = 0; i < packet_length; i++) {
         input_copy[i] = in[i];
     }
+auto start_time = std::chrono::high_resolution_clock::now();
+#endif
     //}
     if (d_check) {
         if (packet_length <= d_crc_length) {
@@ -246,7 +249,7 @@ int crc32_bb_impl::work(int noutput_items,
 	printf("\n");*/
         if (d_packed) {
 #ifdef GRAND
-auto start_time = std::chrono::high_resolution_clock::now();
+start_time = std::chrono::high_resolution_clock::now();
 #endif
             if (crc !=
                 *(unsigned int*)(in + packet_length - d_crc_length)) { // Drop package
