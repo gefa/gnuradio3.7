@@ -184,12 +184,12 @@ inline bool crc32_bb_impl::fix3bit(size_t pkt_len,const uint8_t* bytes_in, uint8
     }
     return false;
 }
-#define GRAND 1
+//#define GRAND 1
 void crc32_bb_impl::print_stats(){
-    //#ifdef GRAND
+    #ifdef GRAND
     printf("%s %ld %ld %ld %d %d %d\n", "pft", d_npass, d_nfail, d_npass+d_nfail,\
     fix1bits,fix2bits,fix3bits);
-    //#endif
+    #endif
 }
 #include <fstream>
 #include <sstream>
@@ -284,6 +284,15 @@ auto start_time = std::chrono::high_resolution_clock::now();
             }else{
                 d_npass++; // if CRC was fine at start
             }
+        } else {
+            for (int i = 0; i < d_crc_length; i++) {
+                if (((crc >> i) & 0x1) !=
+                    *(in + packet_length - d_crc_length + i)) { // Drop package
+                    //printf("BadCrc");
+                    //return 0;
+                }
+            }
+        }
 #ifdef GRAND
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
@@ -296,16 +305,6 @@ auto start_time = std::chrono::high_resolution_clock::now();
 
     printf("CPU: %lld msecs\n", avg_cpu_runtime);
     printf("Mem: %lld bytes\n", avg_memory_footprint);
-
-        } else {
-            for (int i = 0; i < d_crc_length; i++) {
-                if (((crc >> i) & 0x1) !=
-                    *(in + packet_length - d_crc_length + i)) { // Drop package
-                    //printf("BadCrc");
-                    //return 0;
-                }
-            }
-        }
 
         //printf("GoodCrc");
         print_stats();
